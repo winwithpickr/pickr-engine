@@ -1,4 +1,4 @@
-# pickr-core
+# pickr
 
 The verifiable giveaway winner selection engine powering [Pickr](https://winwithpickr.com).
 MIT licensed — audit it, fork it, verify any result picked by @winwithpickr.
@@ -77,6 +77,10 @@ To verify any @winwithpickr result:
 1. Get the seed from the result tweet
 2. Get the pool (reply/retweet list) from X at the time of the draw
 3. Run `SeededRandom.shuffle(pool, seed)` — first N entries are the winners
+
+## Blockchain proof (optional)
+
+The [Pickr](https://winwithpickr.com) service anchors the seed hash and result hash to Solana before and after each pick. This happens outside pickr-core in `SolanaAnchor`.
 
 ## Dependencies
 
