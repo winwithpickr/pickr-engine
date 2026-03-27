@@ -6,7 +6,7 @@ import kotlin.test.*
 class CommandParserTest {
 
     @Test
-    fun `parse basic pick command`() {
+    fun parseBasicPickCommand() {
         val cmd = CommandParser.parse("@winwithpickr pick", "winwithpickr")
         assertNotNull(cmd)
         assertEquals(1, cmd.winners)
@@ -15,14 +15,14 @@ class CommandParserTest {
     }
 
     @Test
-    fun `parse pick with winner count`() {
+    fun parsePickWithWinnerCount() {
         val cmd = CommandParser.parse("@winwithpickr pick 3", "winwithpickr")
         assertNotNull(cmd)
         assertEquals(3, cmd.winners)
     }
 
     @Test
-    fun `parse pick from retweets`() {
+    fun parsePickFromRetweets() {
         val cmd = CommandParser.parse("@winwithpickr pick from retweets", "winwithpickr")
         assertNotNull(cmd)
         assertTrue(cmd.conditions.retweet)
@@ -30,21 +30,21 @@ class CommandParserTest {
     }
 
     @Test
-    fun `parse watch command`() {
+    fun parseWatchCommand() {
         val cmd = CommandParser.parse("@winwithpickr watch", "winwithpickr")
         assertNotNull(cmd)
         assertEquals(TriggerMode.WATCH, cmd.triggerMode)
     }
 
     @Test
-    fun `isTriggerText detects trigger phrases`() {
+    fun isTriggerTextDetectsTriggerPhrases() {
         assertTrue(CommandParser.isTriggerText("Time to pick a winner!"))
         assertTrue(CommandParser.isTriggerText("Giveaway over!"))
         assertFalse(CommandParser.isTriggerText("Thanks everyone!"))
     }
 
     @Test
-    fun `parse followHost from natural phrases`() {
+    fun parseFollowHostFromNaturalPhrases() {
         val phrases = listOf(
             "@winwithpickr pick 7 from replies who follow me",
             "@winwithpickr pick from replies must follow",
@@ -63,14 +63,14 @@ class CommandParserTest {
     }
 
     @Test
-    fun `followHost is false when not mentioned`() {
+    fun followHostIsFalseWhenNotMentioned() {
         val cmd = CommandParser.parse("@winwithpickr pick 3 from replies", "winwithpickr")
         assertNotNull(cmd)
         assertFalse(cmd.conditions.followHost)
     }
 
     @Test
-    fun `follow accounts does not trigger followHost`() {
+    fun followAccountsDoesNotTriggerFollowHost() {
         val cmd = CommandParser.parse("@winwithpickr pick from replies follow @sponsor", "winwithpickr")
         assertNotNull(cmd)
         assertFalse(cmd.conditions.followHost)
@@ -78,7 +78,7 @@ class CommandParserTest {
     }
 
     @Test
-    fun `following third-party account natural language`() {
+    fun followingThirdPartyAccountNaturalLanguage() {
         val phrases = listOf(
             "@winwithpickr pick you must be following @sponsor",
             "@winwithpickr pick following @brand",
@@ -93,14 +93,14 @@ class CommandParserTest {
     }
 
     @Test
-    fun `following third-party captures correct handles`() {
+    fun followingThirdPartyCapturesCorrectHandles() {
         val cmd = CommandParser.parse("@winwithpickr pick must be following @sponsor @brand", "winwithpickr")
         assertNotNull(cmd)
         assertEquals(listOf("sponsor", "brand"), cmd.conditions.followAccounts)
     }
 
     @Test
-    fun `returns null for unrelated text`() {
+    fun returnsNullForUnrelatedText() {
         assertNull(CommandParser.parse("Hello world", "winwithpickr"))
     }
 }
