@@ -37,6 +37,42 @@ kotlin {
     }
 }
 
+tasks.register<JavaExec>("verifyCli") {
+    group = "application"
+    description = "Verify a giveaway pick result from the command line"
+    mainClass.set("dev.pickrtweet.core.VerifyCliKt")
+    val jvmMain = kotlin.jvm().compilations["main"]
+    classpath = files(jvmMain.output.allOutputs, jvmMain.runtimeDependencyFiles)
+}
+
+tasks.register<Jar>("verifyJar") {
+    group = "build"
+    description = "Build standalone pickr-verify.jar"
+    archiveBaseName.set("pickr-verify")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    manifest { attributes["Main-Class"] = "dev.pickrtweet.core.VerifyCliKt" }
+    val jvmMain = kotlin.jvm().compilations["main"]
+    from(jvmMain.output.allOutputs)
+    from(configurations.named("jvmRuntimeClasspath").map { config ->
+        config.map { if (it.isDirectory) it else zipTree(it) }
+    })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.register<Copy>("assembleNpm") {
+    group = "build"
+    description = "Assemble npm package into packages/pickr-verify/"
+    dependsOn("jsBrowserProductionWebpack")
+    from(layout.buildDirectory.file("kotlin-webpack/js/productionExecutable/pickr-parser.js")) {
+        into("lib")
+    }
+    from(rootProject.layout.projectDirectory.dir("packages/pickr-verify")) {
+        include("package.json", "README.md", "bin/**")
+    }
+    into(layout.buildDirectory.dir("npm-package"))
+}
+
 publishing {
     publications.withType<MavenPublication> {
         pom {

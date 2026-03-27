@@ -8,7 +8,7 @@ object CommandParser {
 
     private val winnersRegex        = Regex("""(?:pick|watch)\s+(\d+)""", RegexOption.IGNORE_CASE)
     private val fromRegex           = Regex("""from\s+([\w+]+)""", RegexOption.IGNORE_CASE)
-    private val followAccountsRegex = Regex("""follow(?:ing|er|ers)?\s+((?:@\w+\s*)+)""", RegexOption.IGNORE_CASE)
+    private val followAccountsRegex = Regex("""follow(?:ing|er|ers)?\s+((?:@\w+\s*,?\s*)+)""", RegexOption.IGNORE_CASE)
     private val scheduledRegex      = Regex("""in\s+(\d+)(h|d)""", RegexOption.IGNORE_CASE)
 
     val TRIGGER_PHRASES = listOf(

@@ -46,13 +46,6 @@ class SeededRandomTest {
     }
 
     @Test
-    fun `seed is 64 hex characters`() {
-        val seed = SeededRandom.generateSeed()
-        assertEquals(64, seed.length)
-        assertTrue(seed.matches(Regex("[0-9a-f]+")))
-    }
-
-    @Test
     fun `shuffle handles empty list`() {
         val result = SeededRandom.shuffle(emptyList<String>(), "a".repeat(64))
         assertTrue(result.isEmpty())
@@ -67,8 +60,29 @@ class SeededRandomTest {
     @Test
     fun `shuffle preserves all elements`() {
         val items = listOf("a", "b", "c", "d", "e")
-        val seed = SeededRandom.generateSeed()
+        val seed = SeedGenerator.generateSeed()
         val result = SeededRandom.shuffle(items, seed)
         assertEquals(items.sorted(), result.sorted())
+    }
+
+    @Test
+    fun `shuffle matches java_util_Random output for backward compatibility`() {
+        val items = listOf("u1", "u2", "u3", "u4", "u5")
+        val seed = "a".repeat(64)
+        val result = SeededRandom.shuffle(items, seed)
+        assertEquals(listOf("u1", "u3", "u4", "u2", "u5"), result)
+    }
+
+    @Test
+    fun `pool hash matches java MessageDigest SHA-256 output`() {
+        val hash = SeededRandom.poolHash(listOf("u3", "u1", "u2"))
+        assertEquals("26d23f66bf1cd30c0cb1a32a16fd0c5bc93ba98fcf8901e75b12af41fc33d5dc", hash)
+    }
+
+    @Test
+    fun `seed is 64 hex characters`() {
+        val seed = SeedGenerator.generateSeed()
+        assertEquals(64, seed.length)
+        assertTrue(seed.matches(Regex("[0-9a-f]+")))
     }
 }
