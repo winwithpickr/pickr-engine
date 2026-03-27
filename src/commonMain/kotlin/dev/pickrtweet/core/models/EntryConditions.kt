@@ -9,4 +9,6 @@ data class EntryConditions(
     val like: Boolean = false,
     val followHost: Boolean = false,
     val followAccounts: List<String> = emptyList(),
+    val minAccountAgeDays: Int = 0,
+    val minFollowers: Int = 0,
 )

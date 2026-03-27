@@ -103,4 +103,60 @@ class CommandParserTest {
     fun returnsNullForUnrelatedText() {
         assertNull(CommandParser.parse("Hello world", "winwithpickr"))
     }
+
+    // ── Fraud filter parsing ─────────────────────────────────────────────────
+
+    @Test
+    fun parseMinAccountAge() {
+        val cmd = CommandParser.parse("@winwithpickr pick age 30d", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(30, cmd.conditions.minAccountAgeDays)
+    }
+
+    @Test
+    fun parseMinAgeWithPrefix() {
+        val cmd = CommandParser.parse("@winwithpickr pick min age 14d", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(14, cmd.conditions.minAccountAgeDays)
+    }
+
+    @Test
+    fun parseMinFollowersPostfix() {
+        val cmd = CommandParser.parse("@winwithpickr pick min followers 100", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(100, cmd.conditions.minFollowers)
+    }
+
+    @Test
+    fun parseMinFollowersInfix() {
+        val cmd = CommandParser.parse("@winwithpickr pick min 50 followers", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(50, cmd.conditions.minFollowers)
+    }
+
+    @Test
+    fun parseFraudFilterCombined() {
+        val cmd = CommandParser.parse("@winwithpickr pick age 7d min followers 10", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(7, cmd.conditions.minAccountAgeDays)
+        assertEquals(10, cmd.conditions.minFollowers)
+    }
+
+    @Test
+    fun noFraudFilterByDefault() {
+        val cmd = CommandParser.parse("@winwithpickr pick", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(0, cmd.conditions.minAccountAgeDays)
+        assertEquals(0, cmd.conditions.minFollowers)
+    }
+
+    // ── Scheduled delay clamping ─────────────────────────────────────────────
+
+    @Test
+    fun scheduledDelayClampedAt7Days() {
+        val cmd = CommandParser.parse("@winwithpickr pick in 30d", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals(TriggerMode.SCHEDULED, cmd.triggerMode)
+        assertEquals(7 * 86_400_000L, cmd.scheduledDelayMs)
+    }
 }

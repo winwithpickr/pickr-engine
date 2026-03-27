@@ -4,6 +4,9 @@ import dev.pickrtweet.core.models.EntryConditions
 import dev.pickrtweet.core.models.PoolResult
 import dev.pickrtweet.core.models.TierConfig
 import dev.pickrtweet.core.models.XUser
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlin.time.Duration.Companion.days
 
 interface PoolDataSource {
     suspend fun fetchReplies(tweetId: String, maxResults: Int): List<XUser>
@@ -69,7 +72,27 @@ class PoolBuilder(
             )
         }
 
-        // 4. Cap at tier maxEntries
+        // 4. Fraud filter (Business only)
+        if (tierConfig.fraudFilter) {
+            val minAge = conditions.minAccountAgeDays.takeIf { it > 0 } ?: tierConfig.minAccountAgeDays
+            val minFol = conditions.minFollowers.takeIf { it > 0 } ?: tierConfig.minFollowers
+            if (minAge > 0 || minFol > 0) {
+                val cutoff = Clock.System.now().minus(minAge.days)
+                candidates.entries.removeAll { (_, user) ->
+                    val tooYoung = minAge > 0 && user.createdAt != null &&
+                        Instant.parse(user.createdAt!!) > cutoff
+                    val tooFewFollowers = minFol > 0 &&
+                        (user.publicMetrics?.followersCount ?: 0) < minFol
+                    tooYoung || tooFewFollowers
+                }
+                auditLog?.logStep(
+                    giveawayId, "fraud_filter", candidates.size,
+                    "minAge=${minAge}d, minFollowers=$minFol"
+                )
+            }
+        }
+
+        // 5. Cap at tier maxEntries
         val pool = if (candidates.size > maxEntries) {
             candidates.values.take(maxEntries)
         } else {

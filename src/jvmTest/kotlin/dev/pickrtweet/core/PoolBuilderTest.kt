@@ -3,7 +3,9 @@ package dev.pickrtweet.core
 import dev.pickrtweet.core.models.*
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
 import kotlin.test.*
+import kotlin.time.Duration.Companion.days
 
 class PoolBuilderTest {
 
@@ -24,6 +26,13 @@ class PoolBuilderTest {
     )
 
     private val hostXId = "HOST_001"
+
+    private val businessTier = freeTier.copy(
+        maxEntries = 100_000, maxWinners = 20,
+        followerCheck = true, fraudFilter = true, watermark = false,
+        monthlyPickLimit = 15, overageRate = 25,
+        minAccountAgeDays = 7, minFollowers = 5,
+    )
 
     private fun users(vararg names: String) = names.map { XUser(id = "id_$it", username = it) }
 
@@ -125,6 +134,98 @@ class PoolBuilderTest {
 
         assertEquals(setOf("alice", "carol"), result.users.map { it.username }.toSet())
         assertFalse(result.followHostPartial)
+    }
+
+    // ── Fraud filter tests ─────────────────────────────────────────────────
+
+    @Test
+    fun `fraud filter removes young accounts`() = runBlocking {
+        val oldAccount = XUser(
+            id = "u1", username = "veteran",
+            createdAt = Clock.System.now().minus(30.days).toString(),
+            publicMetrics = PublicMetrics(followersCount = 100),
+        )
+        val newAccount = XUser(
+            id = "u2", username = "newbie",
+            createdAt = Clock.System.now().minus(2.days).toString(),
+            publicMetrics = PublicMetrics(followersCount = 100),
+        )
+        coEvery { dataSource.fetchReplies(any(), any()) } returns listOf(oldAccount, newAccount)
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true, minAccountAgeDays = 7),
+            tierConfig = businessTier, giveawayId = "g1",
+        )
+
+        assertEquals(1, result.users.size)
+        assertEquals("veteran", result.users[0].username)
+    }
+
+    @Test
+    fun `fraud filter removes low-follower accounts`() = runBlocking {
+        val popular = XUser(
+            id = "u1", username = "popular",
+            publicMetrics = PublicMetrics(followersCount = 50),
+        )
+        val bot = XUser(
+            id = "u2", username = "bot",
+            publicMetrics = PublicMetrics(followersCount = 2),
+        )
+        coEvery { dataSource.fetchReplies(any(), any()) } returns listOf(popular, bot)
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true, minFollowers = 10),
+            tierConfig = businessTier, giveawayId = "g1",
+        )
+
+        assertEquals(1, result.users.size)
+        assertEquals("popular", result.users[0].username)
+    }
+
+    @Test
+    fun `fraud filter uses tier defaults when conditions are zero`() = runBlocking {
+        val ok = XUser(
+            id = "u1", username = "legit",
+            createdAt = Clock.System.now().minus(30.days).toString(),
+            publicMetrics = PublicMetrics(followersCount = 100),
+        )
+        val bot = XUser(
+            id = "u2", username = "bot",
+            createdAt = Clock.System.now().minus(1.days).toString(),
+            publicMetrics = PublicMetrics(followersCount = 1),
+        )
+        coEvery { dataSource.fetchReplies(any(), any()) } returns listOf(ok, bot)
+
+        // conditions have 0/0 but businessTier has defaults 7d/5 followers
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true),
+            tierConfig = businessTier, giveawayId = "g1",
+        )
+
+        assertEquals(1, result.users.size)
+        assertEquals("legit", result.users[0].username)
+    }
+
+    @Test
+    fun `fraud filter skipped when tier fraudFilter is false`() = runBlocking {
+        val newAccount = XUser(
+            id = "u1", username = "newbie",
+            createdAt = Clock.System.now().minus(1.days).toString(),
+            publicMetrics = PublicMetrics(followersCount = 0),
+        )
+        coEvery { dataSource.fetchReplies(any(), any()) } returns listOf(newAccount)
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true),
+            tierConfig = freeTier, // fraudFilter = false
+            giveawayId = "g1",
+        )
+
+        assertEquals(1, result.users.size)
     }
 
     @Test

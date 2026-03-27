@@ -85,6 +85,16 @@ object ReplyFormatter {
             .encodeToString(mac.doFinal(data.toByteArray(Charsets.UTF_8)))
     }
 
+    fun fraudFilterGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
+        "Hey @$handle \u2014 fraud filtering (account age / follower minimum) requires Business.\n\n" +
+        "Upgrade: ${upgradeUrl(xId, tweetId, "business", secret, baseUrl)}\n\n" +
+        "To pick without it: \"@winwithpickr pick from replies\""
+
+    fun scheduledPicksGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
+        "Hey @$handle \u2014 scheduled picks require Business.\n\n" +
+        "Upgrade: ${upgradeUrl(xId, tweetId, "business", secret, baseUrl)}\n\n" +
+        "Tip: use \"@winwithpickr watch\" to pick when you're ready instead."
+
     fun tweetTooOldReply(handle: String, ageDays: Int) =
         "Hey @$handle \u2014 replies only available within 7 days of the original tweet " +
         "(X API limit). This tweet is $ageDays days old."

@@ -12,4 +12,6 @@ data class TierConfig(
     val watermark: Boolean,
     val monthlyPickLimit: Int,           // included picks per month
     val overageRate: Int?,               // cents per extra pick, null = hard cap (free tier)
+    val minAccountAgeDays: Int = 0,      // default fraud filter threshold (0 = no filter)
+    val minFollowers: Int = 0,           // default fraud filter threshold (0 = no filter)
 )

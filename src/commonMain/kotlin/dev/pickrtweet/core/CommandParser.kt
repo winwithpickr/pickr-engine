@@ -10,6 +10,8 @@ object CommandParser {
     private val fromRegex           = Regex("""from\s+([\w+]+)""", RegexOption.IGNORE_CASE)
     private val followAccountsRegex = Regex("""follow(?:ing|er|ers)?\s+((?:@\w+\s*,?\s*)+)""", RegexOption.IGNORE_CASE)
     private val scheduledRegex      = Regex("""in\s+(\d+)(h|d)""", RegexOption.IGNORE_CASE)
+    private val minAgeRegex         = Regex("""(?:min\s+)?age\s+(\d+)d""", RegexOption.IGNORE_CASE)
+    private val minFollowersRegex   = Regex("""min\s+(?:(\d+)\s+)?followers?\s*(\d+)?""", RegexOption.IGNORE_CASE)
 
     val TRIGGER_PHRASES = listOf(
         "pick a winner", "pick winner", "picking a winner", "picking winner",
@@ -43,16 +45,24 @@ object CommandParser {
         val hasFollowLanguage = Regex("""follow(?:er|ers|ing)?""").containsMatchIn(lower)
         val followHost = hasFollowLanguage && followAccounts.isEmpty()
 
+        val maxDelayMs = 7 * 86_400_000L
         val scheduledDelayMs = if (triggerMode == TriggerMode.IMMEDIATE) {
             scheduledRegex.find(lower)?.let { m ->
                 val n = m.groupValues[1].toLong()
-                if (m.groupValues[2] == "h") n * 3_600_000L else n * 86_400_000L
+                val raw = if (m.groupValues[2] == "h") n * 3_600_000L else n * 86_400_000L
+                raw.coerceAtMost(maxDelayMs)
             }
         } else null
 
+        // Fraud filter params
+        val minAccountAgeDays = minAgeRegex.find(lower)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        val minFollowers = minFollowersRegex.find(lower)?.let { m ->
+            m.groupValues[1].toIntOrNull() ?: m.groupValues[2].toIntOrNull() ?: 0
+        } ?: 0
+
         return ParsedCommand(
             winners = winners.coerceAtLeast(1),
-            conditions = EntryConditions(reply, retweet, like, followHost, followAccounts),
+            conditions = EntryConditions(reply, retweet, like, followHost, followAccounts, minAccountAgeDays, minFollowers),
             triggerMode = if (scheduledDelayMs != null) TriggerMode.SCHEDULED else triggerMode,
             scheduledDelayMs = scheduledDelayMs,
         )
