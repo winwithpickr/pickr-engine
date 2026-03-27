@@ -389,6 +389,76 @@ class PoolBuilderTest {
         assertTrue(result.users.isEmpty())
     }
 
+    // ── Follow accounts filter tests ──────────────────────────────────
+
+    @Test
+    fun `followAccounts filters to users following all required accounts`() = runBlocking {
+        coEvery { dataSource.fetchReplies(any(), any()) } returns users("alice", "bob", "carol")
+        coEvery { dataSource.resolveHandle("sponsor") } returns "id_sponsor"
+        // alice follows sponsor, bob doesn't, carol does
+        coEvery { dataSource.fetchFollowing("id_alice") } returns setOf("id_sponsor", "id_other")
+        coEvery { dataSource.fetchFollowing("id_bob") } returns setOf("id_other")
+        coEvery { dataSource.fetchFollowing("id_carol") } returns setOf("id_sponsor")
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true, followAccounts = listOf("sponsor")),
+            tierConfig = proTier.copy(followAccountsCheck = true), giveawayId = "g1",
+        )
+
+        assertEquals(setOf("alice", "carol"), result.users.map { it.username }.toSet())
+    }
+
+    @Test
+    fun `followAccounts requires ALL accounts to be followed`() = runBlocking {
+        coEvery { dataSource.fetchReplies(any(), any()) } returns users("alice", "bob")
+        coEvery { dataSource.resolveHandle("sponsor1") } returns "id_s1"
+        coEvery { dataSource.resolveHandle("sponsor2") } returns "id_s2"
+        // alice follows both, bob follows only one
+        coEvery { dataSource.fetchFollowing("id_alice") } returns setOf("id_s1", "id_s2")
+        coEvery { dataSource.fetchFollowing("id_bob") } returns setOf("id_s1")
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true, followAccounts = listOf("sponsor1", "sponsor2")),
+            tierConfig = proTier.copy(followAccountsCheck = true), giveawayId = "g1",
+        )
+
+        assertEquals(listOf("alice"), result.users.map { it.username })
+    }
+
+    @Test
+    fun `followAccounts skipped when tier followAccountsCheck is false`() = runBlocking {
+        coEvery { dataSource.fetchReplies(any(), any()) } returns users("alice", "bob")
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true, followAccounts = listOf("sponsor")),
+            tierConfig = freeTier, // followAccountsCheck = false
+            giveawayId = "g1",
+        )
+
+        assertEquals(2, result.users.size)
+        coVerify(exactly = 0) { dataSource.resolveHandle(any()) }
+        coVerify(exactly = 0) { dataSource.fetchFollowing(any()) }
+    }
+
+    @Test
+    fun `followAccounts skipped when unresolvable handle`() = runBlocking {
+        coEvery { dataSource.fetchReplies(any(), any()) } returns users("alice")
+        coEvery { dataSource.resolveHandle("deleted_account") } returns null
+
+        val result = poolBuilder.build(
+            parentTweetId = "t1", hostXId = hostXId,
+            conditions = EntryConditions(reply = true, followAccounts = listOf("deleted_account")),
+            tierConfig = proTier.copy(followAccountsCheck = true), giveawayId = "g1",
+        )
+
+        // No filtering happened — unresolvable account is skipped gracefully
+        assertEquals(1, result.users.size)
+        coVerify(exactly = 0) { dataSource.fetchFollowing(any()) }
+    }
+
     @Test
     fun `fraud filter skipped when tier fraudFilter is false`() = runBlocking {
         val newAccount = XUser(

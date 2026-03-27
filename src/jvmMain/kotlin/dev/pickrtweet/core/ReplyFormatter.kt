@@ -85,6 +85,11 @@ object ReplyFormatter {
             .encodeToString(mac.doFinal(data.toByteArray(Charsets.UTF_8)))
     }
 
+    fun followAccountsGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
+        "Hey @$handle \u2014 \"must follow\" account checks require Pro.\n\n" +
+        "Upgrade: ${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}\n\n" +
+        "To pick without it: \"@winwithpickr pick from replies\""
+
     fun fraudFilterGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
         "Hey @$handle \u2014 fraud filtering (account age / follower minimum) requires Business.\n\n" +
         "Upgrade: ${upgradeUrl(xId, tweetId, "business", secret, baseUrl)}\n\n" +
