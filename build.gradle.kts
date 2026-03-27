@@ -67,7 +67,7 @@ tasks.register<Copy>("assembleNpm") {
     from(layout.buildDirectory.file("kotlin-webpack/js/productionExecutable/pickr-parser.js")) {
         into("lib")
     }
-    from(rootProject.layout.projectDirectory.dir("packages/pickr-verify")) {
+    from(layout.projectDirectory.dir("packages/pickr-verify")) {
         include("package.json", "README.md", "bin/**")
     }
     into(layout.buildDirectory.dir("npm-package"))

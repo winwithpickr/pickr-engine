@@ -1,0 +1,28 @@
+{
+  "name": "@winwithpickr/verify",
+  "version": "0.1.1",
+  "description": "Independently verify winwithpickr giveaway results",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bmcreations/pickr",
+    "directory": "packages/pickr-verify"
+  },
+  "bin": {
+    "pickr-verify": "./bin/pickr-verify.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "giveaway",
+    "verification",
+    "pickr",
+    "winwithpickr",
+    "random"
+  ]
+}
