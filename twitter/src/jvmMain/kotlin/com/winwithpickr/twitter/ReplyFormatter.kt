@@ -59,7 +59,7 @@ object ReplyFormatter {
     fun monthlyLimitReply(handle: String, limit: Int, tier: Tier, overageRate: Int?, xId: String, tweetId: String, secret: String, baseUrl: String): String {
         if (tier == Tier.FREE) {
             return "Hey @$handle \u2014 you've used all $limit free picks this month.\n\n" +
-                "Upgrade to Pro ($15/mo, 5 picks included):\n${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}"
+                "Upgrade to Pro ($19/mo, 10 picks included):\n${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}"
         }
         val rateFmt = overageRate?.let { "$${it / 100}.${"%02d".format(it % 100)}" } ?: "$0.50"
         return "Hey @$handle \u2014 you've used your $limit included picks this month.\n\n" +
@@ -68,8 +68,8 @@ object ReplyFormatter {
     }
 
     fun followerGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
-        "Hey @$handle \u2014 follower verification requires Pro.\n\n" +
-        "Upgrade: ${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}\n\n" +
+        "Hey @$handle \u2014 follower verification is a paid add-on (+$1/pick).\n\n" +
+        "Upgrade to Pro to unlock: ${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}\n\n" +
         "To pick without it: \"@winwithpickr pick from replies\""
 
     fun upgradeUrl(xId: String, tweetId: String, plan: String, secret: String, baseUrl: String): String {
@@ -86,8 +86,8 @@ object ReplyFormatter {
     }
 
     fun followAccountsGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
-        "Hey @$handle \u2014 \"must follow\" account checks require Pro.\n\n" +
-        "Upgrade: ${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}\n\n" +
+        "Hey @$handle \u2014 \"must follow\" account checks are a paid add-on (+$0.50/pick).\n\n" +
+        "Upgrade to Pro to unlock: ${upgradeUrl(xId, tweetId, "pro", secret, baseUrl)}\n\n" +
         "To pick without it: \"@winwithpickr pick from replies\""
 
     fun fraudFilterGateReply(handle: String, tweetId: String, xId: String, secret: String, baseUrl: String) =
