@@ -6,3 +6,5 @@ pluginManagement {
 }
 
 rootProject.name = "pickr-core"
+include(":engine")
+include(":twitter")
