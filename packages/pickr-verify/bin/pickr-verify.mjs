@@ -7,9 +7,9 @@ import { dirname, join } from "path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
-// Load the Kotlin/JS bundle (UMD — exports as "twitter")
-const pickrCore = require(join(__dirname, "..", "lib", "pickr-parser.js"));
-const { verifyPick } = pickrCore.com.winwithpickr.core;
+// Load the Kotlin/JS bundle (UMD — exports as "pickr")
+const pickr = require(join(__dirname, "..", "lib", "pickr-parser.js"));
+const { verifyPick } = pickr;
 
 function usage() {
   console.log(`

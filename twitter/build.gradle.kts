@@ -14,6 +14,7 @@ repositories {
 kotlin {
     jvm()
     js(IR) {
+        moduleName = "pickr"
         browser {
             webpackTask {
                 mainOutputFileName = "pickr-parser.js"

@@ -1,8 +1,22 @@
 @file:OptIn(ExperimentalJsExport::class)
 
-package com.winwithpickr.twitter
+import com.winwithpickr.twitter.CommandParser
 
-import com.winwithpickr.core.models.TriggerMode
+// ── Verify (delegating to engine) ───────────────────────────────────────────
+
+@JsExport
+data class VerifyResult(
+    val winners: Array<String>,
+    val poolHash: String,
+)
+
+@JsExport
+fun verifyPick(seed: String, poolIds: Array<String>, winnerCount: Int): VerifyResult {
+    val result = com.winwithpickr.core.verifyPick(seed, poolIds, winnerCount)
+    return VerifyResult(winners = result.winners, poolHash = result.poolHash)
+}
+
+// ── Parser ──────────────────────────────────────────────────────────────────
 
 @JsExport
 data class ParseResult(
