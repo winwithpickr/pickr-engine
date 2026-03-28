@@ -14,6 +14,7 @@ object CommandParser {
     private val minFollowersRegex   = Regex("""min\s+(?:(\d+)\s+)?followers?\s*(\d+)?""", RegexOption.IGNORE_CASE)
     private val hashtagRegex        = Regex("""(?:hashtag\s+)?#(\w+)""", RegexOption.IGNORE_CASE)
     private val minTagsRegex        = Regex("""(?:tag|min\s+tags?)\s+(\d+)""", RegexOption.IGNORE_CASE)
+    private val quoteTextRegex      = Regex("quote\\s+[\"\\u201c\\u201d](.+?)[\"\\u201c\\u201d]", RegexOption.IGNORE_CASE)
 
     val TRIGGER_PHRASES = listOf(
         "pick a winner", "pick winner", "picking a winner", "picking winner",
@@ -62,6 +63,7 @@ object CommandParser {
 
         val requiredHashtag = hashtagRegex.find(lower)?.groupValues?.get(1)
         val minTags = minTagsRegex.find(lower)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        val requiredQuoteText = quoteTextRegex.find(text)?.groupValues?.get(1)
 
         return ParsedCommand(
             winners = winners.coerceAtLeast(1),
@@ -75,6 +77,7 @@ object CommandParser {
                 minAccountAgeDays = minAccountAgeDays,
                 minFollowers = minFollowers,
                 requiredHashtag = requiredHashtag,
+                requiredQuoteText = requiredQuoteText,
                 minTags = minTags,
             ),
             triggerMode = if (scheduledDelayMs != null) TriggerMode.SCHEDULED else triggerMode,

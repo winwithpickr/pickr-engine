@@ -228,6 +228,30 @@ class CommandParserTest {
         assertEquals(2, cmd.conditions.minTags)
     }
 
+    // ── Quote text parsing ──────────────────────────────────────────────────
+
+    @Test
+    fun parseQuoteTextCondition() {
+        val cmd = CommandParser.parse("""@winwithpickr pick from quotes quote "I love this"""", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals("I love this", cmd.conditions.requiredQuoteText)
+        assertTrue(cmd.conditions.quoteTweet)
+    }
+
+    @Test
+    fun parseQuoteTextWithSmartQuotes() {
+        val cmd = CommandParser.parse("@winwithpickr pick from quotes quote \u201cmy entry\u201d", "winwithpickr")
+        assertNotNull(cmd)
+        assertEquals("my entry", cmd.conditions.requiredQuoteText)
+    }
+
+    @Test
+    fun noQuoteTextByDefault() {
+        val cmd = CommandParser.parse("@winwithpickr pick", "winwithpickr")
+        assertNotNull(cmd)
+        assertNull(cmd.conditions.requiredQuoteText)
+    }
+
     // ── Scheduled delay clamping ─────────────────────────────────────────────
 
     @Test

@@ -372,6 +372,46 @@ class XPoolBuilderTest {
         assertTrue(result.users.isEmpty())
     }
 
+    // ── Quote text filter tests ─────────────────────────────────────────
+
+    @Test
+    fun quoteTextFilterKeepsMatches() = runBlocking {
+        val match = XUser(id = "u1", displayName = "alice", replyText = "I love this product!")
+        val noMatch = XUser(id = "u2", displayName = "bob", replyText = "Random text here")
+        coEvery { dataSource.fetchQuoteTweets(any(), any()) } returns listOf(match, noMatch)
+
+        val conds = EntryConditions(reply = false, quoteTweet = true, requiredQuoteText = "I love this")
+        val (pipeline, _) = builder.buildPipeline(conds, freeTier)
+        val result = pipeline.build(context())
+
+        assertEquals(1, result.users.size)
+        assertEquals("alice", result.users[0].username)
+    }
+
+    @Test
+    fun quoteTextFilterIsCaseInsensitive() = runBlocking {
+        val user = XUser(id = "u1", displayName = "alice", replyText = "I LOVE THIS product!")
+        coEvery { dataSource.fetchQuoteTweets(any(), any()) } returns listOf(user)
+
+        val conds = EntryConditions(reply = false, quoteTweet = true, requiredQuoteText = "i love this")
+        val (pipeline, _) = builder.buildPipeline(conds, freeTier)
+        val result = pipeline.build(context())
+
+        assertEquals(1, result.users.size)
+    }
+
+    @Test
+    fun quoteTextFilterSkippedWhenNull() = runBlocking {
+        val user = XUser(id = "u1", displayName = "alice", replyText = "anything")
+        coEvery { dataSource.fetchQuoteTweets(any(), any()) } returns listOf(user)
+
+        val conds = EntryConditions(reply = false, quoteTweet = true, requiredQuoteText = null)
+        val (pipeline, _) = builder.buildPipeline(conds, freeTier)
+        val result = pipeline.build(context())
+
+        assertEquals(1, result.users.size)
+    }
+
     // ── Fraud filter tests ───────────────────────────────────────────────
 
     @Test

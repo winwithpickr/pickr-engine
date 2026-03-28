@@ -13,5 +13,6 @@ data class EntryConditions(
     val minAccountAgeDays: Int = 0,
     val minFollowers: Int = 0,
     val requiredHashtag: String? = null,
+    val requiredQuoteText: String? = null,
     val minTags: Int = 0,
 )

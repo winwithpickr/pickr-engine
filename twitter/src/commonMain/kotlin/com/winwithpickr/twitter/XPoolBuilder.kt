@@ -57,9 +57,9 @@ class XPoolBuilder(private val dataSource: XDataSource) {
             filters.add(FollowAccountsFilter(dataSource, conditions.followAccounts))
         }
 
-        if (conditions.requiredHashtag != null) {
-            filters.add(HashtagFilter(conditions.requiredHashtag!!))
-        }
+        conditions.requiredHashtag?.let { filters.add(HashtagFilter(it)) }
+
+        conditions.requiredQuoteText?.let { filters.add(QuoteTextFilter(it)) }
 
         if (conditions.minTags > 0) {
             filters.add(MinTagsFilter(conditions.minTags, excludeHandles))
