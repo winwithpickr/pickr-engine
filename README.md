@@ -27,67 +27,12 @@ The [@winwithpickr](https://x.com/winwithpickr) service wraps this library with 
 
 Because step 3 is deterministic and open-source, anyone with the seed and pool can rerun it and confirm the winners match — without trusting the service.
 
-## Install
-
-### Gradle (JVM / Kotlin Multiplatform)
-
-```kotlin
-// build.gradle.kts
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("com.winwithpickr:engine:0.3.0")
-}
-```
-
-### npm
-
-```bash
-npm install @winwithpickr/engine
-```
-
 ## Verify a result
-
-### CLI (npm)
-
-```bash
-npx @winwithpickr/engine verify \
-  --seed <64-char-hex> \
-  --pool <id,id,id,...> \
-  --winners <n> \
-  --expected-hash <hash-from-result-page>
-```
-
-### CLI (Java)
-
-Download `pickr-verify.jar` from [Releases](https://github.com/winwithpickr/pickr-engine/releases):
-
-```bash
-java -jar pickr-verify.jar \
-  --seed <64-char-hex> \
-  --pool <id,id,id,...> \
-  --winners <n> \
-  --expected-hash <hash-from-result-page>
-```
-
-### Kotlin
 
 ```kotlin
 val shuffled = SeededRandom.shuffle(pool, seed)
 val winners  = shuffled.take(n)
 val hash     = SeededRandom.poolHash(pool.map { it.id })
-```
-
-### JavaScript (browser / Node.js)
-
-```javascript
-import { verifyPick } from "@winwithpickr/engine";
-
-const result = verifyPick(seed, poolIds, winnerCount);
-// result.winners  — computed winner IDs
-// result.poolHash — computed SHA-256 pool hash
 ```
 
 ## Architecture
